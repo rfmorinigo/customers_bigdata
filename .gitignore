@@ -1,0 +1,18 @@
+# data
+data/raw/*
+data/bronze/*
+data/silver/*
+
+# env
+.venv/
+.env
+
+# python
+__pycache__/
+*.pyc
+
+# db
+*.duckdb
+
+# os
+.DS_Store
