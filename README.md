@@ -6,7 +6,7 @@
 ![Parquet](https://img.shields.io/badge/Apache_Parquet-green?logo=apache)
 ![Matplotlib](https://img.shields.io/badge/matplotlib-3.6.0-blueviolet?logo=matplotlib)
 
-Bienvenido a un proyecto de **Analytics & Data Engineering** que demuestra cómo procesar y analizar un conjunto de datos de clientes con más de **dos millones de registros** de manera escalable.  A lo largo de este repositorio encontrarás un pipeline tipo *lakehouse* con capas **Bronze** y **Silver**, consultas SQL para KPIs de negocio y gráficos reproducibles.  Este proyecto está orientado a mostrar buenas prácticas de ingeniería y análisis de datos en un escenario de gran volumen.
+Bienvenido a un proyecto de **Analytics & Data Engineering** que demuestra cómo procesar y analizar un conjunto de datos de clientes con más de **dos millones de registros** de manera escalable.  A lo largo de este repositorio encontrarás un pipeline de datos creado siguiendo el patrón de diseño Medallón, con capas Bronze y Silver, consultas SQL para el cálculo de KPIs de negocio y gráficos reproducibles.  Este proyecto está orientado a mostrar buenas prácticas de ingeniería y análisis de datos en un escenario de gran volumen.
 
 ## Tabla de contenidos
 
@@ -72,7 +72,8 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # Instalar dependencias
-pip install -r requeriments.txt
+pip install -r requirements.txt
+```
 
 Una vez instalado, asegúrate de colocar el archivo CSV original (2M registros) en `data/raw/` antes de continuar con la ingesta.
 
@@ -89,12 +90,9 @@ En esta etapa se convierte el gran archivo CSV en múltiples archivos Parquet pa
 python src/01_ingest_bronze.py
 ```
 
-Este proceso muestra una barra de progreso en consola y al finalizar reporta el número total de filas y partes generadas.  Guarda una captura de pantalla aquí para ilustrar la ingesta:
+Este proceso muestra una barra de progreso en consola y al finalizar reporta el número total de filas y partes generadas. 
 
-
-```md
 ![Ingesta Bronze](/screenshots/script_bronze_run.png)
-```
 
 > **Explicación:** Procesar el CSV por partes evita desbordar la memoria.  Cada Parquet resultante corresponde a un bloque de datos y mantiene las columnas con nombres consistentes, lo que facilita su lectura posterior con DuckDB.
 
@@ -115,9 +113,7 @@ EOF
 
 Al ejecutar este bloque se materializa la tabla Silver. Se ejecuta una pequeña validacion para corro borar cantidad de filas duplicadas que fueron limpiadas.
 
-```md
 ![Generación de Silver](/screenshots/script_dedup.png)
-```
 
 > **Nota:** se utiliza `ROW_NUMBER()` en la consulta SQL para deduplicar por email, quedándose con la fila más reciente.  De esta manera, el número de filas en Silver coincide con el número de correos únicos y se preserva la calidad de los datos.
 
@@ -129,10 +125,9 @@ Con la Silver lista podemos formular consultas analíticas (capa Gold) para resp
 
 **Pregunta:** ¿Cómo evoluciona el número de clientes a lo largo del tiempo?
 
-**Consulta mensual**
 
 ```sql
--- 03_kpi_growth.sql (consulta 1)
+-- 03_kpi_growth.sql (Consulta mensual)
 SELECT
   subscription_year,
   subscription_month,
@@ -142,12 +137,10 @@ GROUP BY subscription_year, subscription_month
 ORDER BY subscription_year, subscription_month;
 ```
 
-[salida_sql_kp1](/screenshots/sql_kpi1.1.png)
-
-**Consulta anual**
+![salida_sql_kp1](/screenshots/sql_kpi1.1.png)
 
 ```sql
--- 03_kpi_growth.sql (consulta 2)
+-- 03_kpi_growth.sql (consulta  anual)
 SELECT
   subscription_year,
   COUNT(*) AS new_customers
@@ -256,7 +249,7 @@ Los gráficos ayudan a interpretar y comunicar los KPIs.  En este proyecto se ge
 |---|---|---|
 | ![Crecimiento mensual](outputs/figures/kpi1_growth_monthly.png) | Evolución del número de nuevos clientes cada mes. Permite detectar tendencias y estacionalidad en las suscripciones. | `kpi1_growth_monthly.png` |
 | ![Top países](outputs/figures/kpi2_top_countries.png) | Muestra los 10 países con mayor cantidad de clientes. Útil para identificar mercados prioritarios. | `kpi2_top_countries.png` |
-| ![Dominios de email](outputs/figures/kpi3_email_domains_pie.png) | Distribución de los dominios de correo (Top 6 más categoría "Otros"). Evidencia el peso de dominios genéricos (gmail, yahoo) frente a corporativos. | `kpi3_email_domains_pie.png` |
+| ![Dominios de email](outputs/figures/kpi3_email_domains_pie.png) | Distribución de los dominios de correo (Top 10"). Evidencia mayor cantidad de dominios corporativos con cifras similares. | `kpi3_email_domains_pie.png` |
 
 > **Cómo generar los gráficos:** ejecuta los scripts `kpi1_growth_plot.py`, `kpi2_geography_plot.py` y `kpi3_email_domains_plot.py` en ese orden.  Cada script leerá la Silver, calculará la métrica correspondiente y guardará el PNG sin mostrarlo en pantalla.
 
